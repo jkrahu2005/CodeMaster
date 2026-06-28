@@ -30,30 +30,28 @@ app.use("/submission", submitRouter);
 app.use("/ai", aiRouter);
 app.use("/video", videoRouter);
 
-let isConnected = false;
+let initialized = false;
 
-async function connect() {
-  if (isConnected) return;
+async function initialize() {
+  if (initialized) return;
 
-  await Promise.all([
-    main(),
-    redisClient.isOpen ? Promise.resolve() : redisClient.connect(),
-  ]);
+  await main();
 
+  if (!redisClient.isOpen) {
+    await redisClient.connect();
+  }
+
+  initialized = true;
   console.log("MongoDB & Redis Connected");
-  isConnected = true;
 }
 
-// This runs before every serverless invocation
-module.exports = async (req, res) => {
+app.use(async (req, res, next) => {
   try {
-    await connect();
-    return app(req, res);
+    await initialize();
+    next();
   } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      success: false,
-      message: "Server initialization failed",
-    });
+    next(err);
   }
-};
+});
+
+module.exports = app;
