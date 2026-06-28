@@ -110,13 +110,13 @@ function SignIn() {
                       Password
                     </span>
                   </label>
-                  <button
-                    type="button"
+                  {/* ✅ UPDATED: "Forgot Password?" now links to /forgot-password */}
+                  <Link
+                    to="/forgot-password"
                     className="link link-primary link-hover text-sm font-medium"
-                    onClick={() => console.log("Forgot password clicked")}
                   >
                     Forgot Password?
-                  </button>
+                  </Link>
                 </div>
                 <div className="relative">
                   <input
