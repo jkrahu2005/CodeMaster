@@ -4,7 +4,7 @@ import { z } from "zod";
 import { useState, useEffect } from "react";
 import { Eye, EyeOff, Lock, ArrowLeft, CheckCircle } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router";
-import axios from 'axios';
+import axiosClient from "../utils/axiosClient";
 
 // Schema validation for reset password
 const resetPasswordSchema = z.object({
@@ -52,10 +52,10 @@ function ResetPassword() {
     setMessage('');
 
     try {
-      const response = await axios.post('http://localhost:3000/user/reset-password', {
-        token,
-        newPassword: data.password
-      });
+  const response = await axiosClient.post("/user/reset-password", {
+  token,
+  newPassword: data.password,
+});
       setMessage('✅ ' + response.data.message);
       setIsSuccess(true);
 

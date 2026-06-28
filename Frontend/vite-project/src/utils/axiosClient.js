@@ -1,11 +1,11 @@
 import axios from "axios";
 
 const axiosClient = axios.create({
-    baseURL: 'https://code-master-sand-six.vercel.app',
-    withCredentials: true,
-    headers: {
-        'Content-Type': 'application/json'
-    }
+  baseURL: import.meta.env.VITE_API_URL,
+  withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
 export default axiosClient;

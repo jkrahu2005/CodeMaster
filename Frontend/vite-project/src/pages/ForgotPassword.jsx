@@ -4,7 +4,7 @@ import { z } from "zod";
 import { useState } from "react";
 import { Mail, ArrowLeft, Send, CheckCircle } from "lucide-react";
 import { Link } from "react-router";
-import axios from 'axios';
+import axiosClient from "../utils/axiosClient";
 
 // Schema validation for forgot password
 const forgotPasswordSchema = z.object({
@@ -25,24 +25,28 @@ function ForgotPassword() {
     mode: "onChange"
   });
 
-  const onSubmit = async (data) => {
-    setLoading(true);
-    setMessage('');
-    setIsSuccess(false);
+const onSubmit = async (data) => {
+  setLoading(true);
+  setMessage("");
+  setIsSuccess(false);
 
-    try {
-      const response = await axios.post('http://localhost:3000/user/forgot-password', {
-        email: data.email
-      });
-      setMessage(response.data.message);
-      setIsSuccess(true);
-    } catch (error) {
-      setMessage(error.response?.data?.message || 'Something went wrong. Please try again.');
-      setIsSuccess(false);
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    const response = await axiosClient.post("/user/forgot-password", {
+      email: data.email,
+    });
+
+    setMessage(response.data.message);
+    setIsSuccess(true);
+  } catch (error) {
+    setMessage(
+      error.response?.data?.message ||
+        "Something went wrong. Please try again."
+    );
+    setIsSuccess(false);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-base-100 via-base-200 to-base-300 flex items-center justify-center p-4">
