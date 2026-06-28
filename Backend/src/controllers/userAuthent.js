@@ -21,49 +21,113 @@ const transporter = nodemailer.createTransport({
 const register = async (req, res) => {
   try {
     validate(req.body);
-    const { firstName, emailId, password } = req.body;
+
+    const { emailId, password } = req.body;
+
     req.body.password = await bcrypt.hash(password, 10);
-    req.body.role = 'user';
+    req.body.role = "user";
+
     const user = await User.create(req.body);
-    const token = jwt.sign({ _id: user._id, emailID: emailId, role: user.role }, process.env.JWT_KEY, { expiresIn: 60 * 60 });
-    res.cookie('token', token, { maxAge: 60 * 60 * 1000 });
+
+    const token = jwt.sign(
+      {
+        _id: user._id,
+        emailId: user.emailId,
+        role: user.role,
+      },
+      process.env.JWT_KEY,
+      { expiresIn: 60 * 60 }
+    );
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite:
+        process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 60 * 60 * 1000,
+    });
+
     const reply = {
       firstName: user.firstName,
       emailId: user.emailId,
       _id: user._id,
-      role: user.role
+      role: user.role,
     };
+
     res.status(201).json({
+      success: true,
       user: reply,
-      message: "user registered successfully"
+      message: "User registered successfully",
     });
   } catch (err) {
-    res.status(401).send("error occured:" + err);
+    console.error(err);
+
+    res.status(400).json({
+      success: false,
+      message: err.message || "Registration failed",
+    });
   }
 };
 
 const login = async (req, res) => {
   try {
     const { emailId, password } = req.body;
-    if (!emailId) throw new Error("Invalid Credentials");
-    if (!password) throw new Error("Invalid Credentials");
+
+    if (!emailId || !password) {
+      throw new Error("Invalid Credentials");
+    }
+
     const user = await User.findOne({ emailId });
+
+    if (!user) {
+      throw new Error("User does not exist");
+    }
+
     const match = await bcrypt.compare(password, user.password);
-    if (!match) throw new Error("password is incorrect");
+
+    if (!match) {
+      throw new Error("Password is incorrect");
+    }
+
     const reply = {
       firstName: user.firstName,
       emailId: user.emailId,
       _id: user._id,
-      role: user.role
+      role: user.role,
     };
-    const token = jwt.sign({ _id: user._id, emailId: emailId, role: user.role }, process.env.JWT_KEY, { expiresIn: 60 * 60 });
-    res.cookie('token', token, { maxAge: 60 * 60 * 1000 });
-    res.status(201).json({
+
+    const token = jwt.sign(
+      {
+        _id: user._id,
+        emailId: user.emailId,
+        role: user.role,
+      },
+      process.env.JWT_KEY,
+      {
+        expiresIn: 60 * 60,
+      }
+    );
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite:
+        process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 60 * 60 * 1000,
+    });
+
+    res.status(200).json({
+      success: true,
       user: reply,
-      message: "logged in successfully"
+      message: "Logged in successfully",
     });
   } catch (err) {
-    res.status(401).send("Error occured" + err);
+    console.error(err);
+
+    res.status(401).json({
+      success: false,
+      message: err.message || "Login failed",
+    });
   }
 };
 
